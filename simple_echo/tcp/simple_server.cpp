@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
             char buf[1024]{};
             // 6. 从通信套接字接收客户端发送的数据 recv
             int len = recv(clnt_sock, buf, sizeof(buf), 0); // 阻塞
+            printf("recv_len: %d\n", len);
             if (len > 0) {
                 printf("接收到客户端发送的消息: %s\n", buf);
                 // 7. 向通信套接字发送数据 send
