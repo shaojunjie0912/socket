@@ -1,13 +1,13 @@
+// Linux
 #include <arpa/inet.h>
-#include <cassert>
+#include <fcntl.h>
+#include <sys/epoll.h>
+#include <unistd.h>
+
+// C
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
 constexpr int kEpollSize = 50;
 constexpr int kBuffSize = 2;
@@ -25,11 +25,18 @@ int main() {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
 
     int serv_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (serv_sock == -1) {
+        perror(strerror(errno));
+        return -1;
+    }
     int ret = bind(serv_sock, reinterpret_cast<sockaddr *>(&serv_addr),
                    sizeof(serv_addr));
     if (ret == -1) {
-        printf("bind() 错误\n");
+        perror(strerror(errno));
+        close(serv_sock);
+        return -1;
     }
+
     listen(serv_sock, 10);
 
     // HACK: 设置监听套接字非阻塞
@@ -78,7 +85,6 @@ int main() {
                 while (true) {
                     char buf[kBuffSize]{};
                     int recv_len = recv(fd, buf, kBuffSize, 0);
-                    // printf("recv_len: %d\n", recv_len);
                     if (recv_len == 0) {
                         printf("客户端 fd: %d 断开连接\n", fd);
                         // 删除注册, 事件设为空
@@ -88,7 +94,7 @@ int main() {
                     }
                     // NOTE: 非阻塞 recv < 0 时需要判断 errno
                     else if (recv_len < 0) {
-                        if (errno == EAGAIN) {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
                             // 读缓冲区无数据, 退出读数据循环
                             break;
                         }
