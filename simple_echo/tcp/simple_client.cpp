@@ -24,11 +24,10 @@ int main(int argc, char *argv[]) {
     sockaddr_in serv_addr{};
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
-    inet_pton(AF_INET, ip, &serv_addr.sin_addr.s_addr);
+    inet_pton(AF_INET, ip, &serv_addr.sin_addr);
 
     // 2. 连接服务器
-    int ret = connect(sock, reinterpret_cast<sockaddr *>(&serv_addr),
-                      sizeof(serv_addr));
+    int ret = connect(sock, reinterpret_cast<sockaddr *>(&serv_addr), sizeof(serv_addr));
     if (ret == -1) {
         ErrorHandling("connect error");
     }
@@ -42,7 +41,7 @@ int main(int argc, char *argv[]) {
         // 3. 向服务器发送数据
         send(sock, buf, strlen(buf), 0);
         // 4. 从服务器接收数据
-        memset(buf, '\0', kBuffSize); // NOTE: 别忘记清零了!!!
+        memset(buf, '\0', kBuffSize);  // NOTE: 别忘记清零了!!!
         // NOTE: 如果recv长度不足，应该一直recv，可能服务器也一直在发
         int cnt_msg_rcv = recv(sock, buf, kBuffSize, 0);
         if (cnt_msg_rcv == 0) {
