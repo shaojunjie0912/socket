@@ -21,13 +21,12 @@ int main(int argc, char *argv[]) {
     }
 
     sockaddr_in serv_addr{};
-    serv_addr.sin_family = AF_INET;   // 地址族
-    serv_addr.sin_port = htons(port); // 主机字节序->网络字节序
+    serv_addr.sin_family = AF_INET;    // 地址族
+    serv_addr.sin_port = htons(port);  // 主机字节序->网络字节序
     serv_addr.sin_addr.s_addr = INADDR_ANY;
 
     // 2. 绑定监听套接字 bind
-    int ret = bind(serv_sock, reinterpret_cast<sockaddr *>(&serv_addr),
-                   sizeof(serv_addr));
+    int ret = bind(serv_sock, reinterpret_cast<sockaddr *>(&serv_addr), sizeof(serv_addr));
     if (ret == -1) {
         ErrorHandling("bind() error");
     }
@@ -44,8 +43,7 @@ int main(int argc, char *argv[]) {
         // 4. 接受客户端请求 accept
         // 5. 返回通信套接字
         int clnt_sock =
-            accept(serv_sock, reinterpret_cast<sockaddr *>(&clnt_addr),
-                   &clnt_addr_size);
+            accept(serv_sock, reinterpret_cast<sockaddr *>(&clnt_addr), &clnt_addr_size);
         if (clnt_sock == -1) {
             ErrorHandling("accept() error");
         }
@@ -57,7 +55,7 @@ int main(int argc, char *argv[]) {
         while (true) {
             char buf[1024]{};
             // 6. 从通信套接字接收客户端发送的数据 recv
-            int len = recv(clnt_sock, buf, sizeof(buf), 0); // 阻塞
+            int len = recv(clnt_sock, buf, sizeof(buf), 0);  // 阻塞
             if (len > 0) {
                 // printf("接收到客户端发送的消息: %s\n", buf);
                 printf("客户端消息: %d 字节\n", len);
@@ -70,8 +68,8 @@ int main(int argc, char *argv[]) {
                 ErrorHandling("read error");
             }
         }
-        close(clnt_sock); // 关闭通信套接字
+        close(clnt_sock);  // 关闭通信套接字
     }
-    close(serv_sock); // 关闭监听套接字
+    close(serv_sock);  // 关闭监听套接字
     return 0;
 }
