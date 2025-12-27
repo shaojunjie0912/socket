@@ -26,14 +26,14 @@ asio::awaitable<void> handle_client(tcp::socket socket) {
 
         for (;;) {
             // 1. 准备接收数据
-            std::vector<char> recv_buffer(kMaxBufferSize);
+            std::vector<std::byte> recv_buf(kMaxBufferSize);  // 用户接收缓冲区
 
             // 2. 异步接收数据
             std::cout << "等待客户端 " << remote_endpoint.address().to_string() << ":"
                       << remote_endpoint.port() << " 发送数据..." << std::endl;
 
             size_t bytes_received =
-                co_await socket.async_read_some(asio::buffer(recv_buffer), asio::use_awaitable);
+                co_await socket.async_read_some(asio::buffer(recv_buf), asio::use_awaitable);
 
             if (bytes_received == 0) {
                 std::cout << "客户端 " << remote_endpoint.address().to_string() << ":"
@@ -42,13 +42,15 @@ asio::awaitable<void> handle_client(tcp::socket socket) {
             }
 
             std::cout << "收到来自 " << remote_endpoint.address().to_string() << ":"
-                      << remote_endpoint.port()
-                      << " 的消息: " << std::string(recv_buffer.data(), bytes_received)
+                      << remote_endpoint.port() << " 的消息: "
+                      << std::string_view(reinterpret_cast<char const*>(recv_buf.data()),
+                                          bytes_received)
                       << std::endl;
 
             // 3. 异步发送数据 (回显)
-            co_await socket.async_send(asio::buffer(recv_buffer.data(), bytes_received),
-                                       asio::use_awaitable);
+            co_await socket.async_send(
+                asio::buffer(reinterpret_cast<void const*>(recv_buf.data()), bytes_received),
+                asio::use_awaitable);
 
             std::cout << "已将消息回显至客户端 " << remote_endpoint.address().to_string() << ":"
                       << remote_endpoint.port() << std::endl;

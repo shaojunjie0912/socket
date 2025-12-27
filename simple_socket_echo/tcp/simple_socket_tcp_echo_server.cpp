@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <vector>
 
 void ErrorHandling(char const *message) {
     std::cerr << message << std::endl;
@@ -52,15 +53,16 @@ int main(int argc, char *argv[]) {
         printf("检测到有客户端连接: %s, port: %d\n",
                inet_ntop(AF_INET, &clnt_addr.sin_addr.s_addr, ip, sizeof(ip)),
                ntohs(clnt_addr.sin_port));
+        std::vector<std::byte> buf(1024);
         while (true) {
-            char buf[1024]{};
-            // 6. 从通信套接字接收客户端发送的数据 recv
-            int len = recv(clnt_sock, buf, sizeof(buf), 0);  // 阻塞
+            buf.clear();
+            // 6. 从通信套接字接收客户端发送的数据 recv 阻塞
+            int len = recv(clnt_sock, reinterpret_cast<void *>(buf.data()), sizeof(buf), 0);
             if (len > 0) {
                 // printf("接收到客户端发送的消息: %s\n", buf);
                 printf("客户端消息: %d 字节\n", len);
                 // 7. 向通信套接字发送数据 send
-                send(clnt_sock, buf, len, 0);
+                send(clnt_sock, reinterpret_cast<void const *>(buf.data()), len, 0);
             } else if (len == 0) {
                 printf("客户端断开连接...\n");
                 break;
